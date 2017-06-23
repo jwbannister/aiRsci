@@ -1,0 +1,67 @@
+
+#' Send query to an Air Sciences AWS database
+#' 
+#' \code{query_db} sends the query argument to an Air Sciences database hostes 
+#' on Amazon Web Services.
+#' 
+#'@param db String. Name of database to access, either "owenslake" or 
+#'"saltonsea"
+#'@param query String. Query string to send to database.
+#'@param db_host, db_password, db_user, db_port String. PSQL connection 
+#'parameters. 
+query_db <- function(db, query, db_host=psql_host, db_password=psql_password, 
+                     db_user=psql_user, db_port=psql_port, no_message=F){
+    if (!(db %in% c("owenslake", "saltonsea"))){
+        stop("Incorrect database name!")
+    }
+    if (length(db_host)==0){
+        stop("Database connection parameters not defined.")
+    }
+    con <- RPostgreSQL::dbConnect("PostgreSQL", host=db_host, port=db_port,
+                                  dbname="owenslake", user=db_user, 
+                                  password=db_password)
+    if (no_message){
+    dat <- suppressMessages(RPostgreSQL::dbGetQuery(con, query))
+    } else{
+    dat <- RPostgreSQL::dbGetQuery(con, query)
+    }
+    RPostgreSQL::dbDisconnect(con)
+    dat
+}
+
+upsert_2_db <- function(db, tbl, df1, cols2char, key_cols){
+    df1[is.na(df1)] <- 'NULL'
+    for (j in cols2char){
+        df1[ , j] <- paste0("'", df1[ , j], "'")
+    }
+    query_data <- c()
+    for (i in 1:nrow(df1)){
+        query_data[i] <- paste0("(", paste(df1[i, ], collapse=", "), ")")
+    }
+    cols <- query_db(db, paste0("SELECT column_name FROM information_schema.columns ", 
+                                "WHERE table_name='", strsplit(tbl, "\\.")[[1]][2], "' ", 
+                                "AND table_schema='", strsplit(tbl, "\\.")[[1]][1], "';"))
+    data_cols <- cols[cols!=key_cols]
+    data_string <- paste(paste0(data_cols, "=newvals.", data_cols), collapse=", ")
+    key_string <- paste(paste0("newvals.", key_cols, "=", tbl, ".", key_cols), collapse=" AND ")
+    full_string <- paste(paste0("newvals.", cols$column_name), collapse=", ")
+    null_string <- paste(paste0(tbl, ".", key_cols, " IS NULL"), collapse=" AND ")
+    upsert_query <- paste0("BEGIN;", 
+                           "CREATE TEMPORARY TABLE newvals ",
+                           "AS SELECT * FROM ", tbl, " WITH NO DATA;", 
+                           "INSERT INTO newvals ",
+                           "VALUES ", paste(query_data, collapse=", "), ";", 
+                           "LOCK TABLE ", tbl, " IN EXCLUSIVE MODE;",
+                           "UPDATE ", tbl, " ", 
+                           "SET ", data_string, " ", 
+                           "FROM newvals ",
+                           "WHERE ", key_string, ";", 
+                           "INSERT INTO ", tbl, " ", 
+                           "SELECT ", full_string, " ", 
+                           "FROM newvals ",
+                           "LEFT OUTER JOIN ", tbl, " ", 
+                           "ON ", key_string, " ",
+                           "WHERE ", null_string, ";", 
+                           "COMMIT;")
+    query_db(db, upsert_query)
+}
