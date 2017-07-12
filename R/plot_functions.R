@@ -22,3 +22,19 @@ get_plot_range <- function(polys, external_points=NULL){
   plot.range
 }
 
+wd_2_geomspoke <- function(deg){
+    geomspoke_translate <- list(q0=function(x) (x * (pi/180) - pi/2), 
+                                q90=function(x) (x *(pi/180) + pi/2),
+                                q1=function(x) (-x *(pi/180) - pi/2), 
+                                q2=function(x) (-x *(pi/180) + 3*pi/2)) 
+    angle_classify <- function(x){
+        if (x==0 | x==180) return("q0")
+        if (x==90 | x==270) return("q90")
+        if (x>0 & x<180) return("q1")
+        if (x>180 & x<360) return("q2")
+    }
+    cls <- angle_classify(deg)
+    rad <- geomspoke_translate[[cls]](deg)
+    rad
+}
+

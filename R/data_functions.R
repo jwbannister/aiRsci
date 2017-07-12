@@ -30,10 +30,11 @@ query_db <- function(db, query, db_host=psql_host, db_password=psql_password,
 }
 
 upsert_2_db <- function(db, tbl, df1, cols2char, key_cols){
-    df1[is.na(df1)] <- 'NULL'
     for (j in cols2char){
-        df1[ , j] <- paste0("'", df1[ , j], "'")
+        df1[ , j] <- sapply(df1[ , j], function(x) ifelse(is.na(x), NA, 
+                                                          paste0("'", x, "'")))
     }
+    df1[is.na(df1)] <- 'NULL'
     query_data <- c()
     for (i in 1:nrow(df1)){
         query_data[i] <- paste0("(", paste(df1[i, ], collapse=", "), ")")
@@ -64,4 +65,12 @@ upsert_2_db <- function(db, tbl, df1, cols2char, key_cols){
                            "WHERE ", null_string, ";", 
                            "COMMIT;")
     query_db(db, upsert_query)
+}
+
+S3_bucket_access <- function(hostname="s3-us-west-2.amazonaws.com", 
+                             bucket, key, file){
+    aws_access <- Sys.getenv("AWSID_AIRSCI")
+    aws_secret <- Sys.getenv("AWSKEY_AIRSCI")
+    RS3::S3_connect(aws_access, aws_secret, hostname)
+    RS3::S3_get_object(bucket, key, file)
 }
