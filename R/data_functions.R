@@ -17,6 +17,14 @@ query_db <- function(db, query, db_host=psql_host, db_password=psql_password,
     if (length(db_host)==0){
         stop("Database connection parameters not defined.")
     }
+    if (db=="owenslake"){
+        db_host <- Sys.getenv("PSQL_HOST_OWENS")
+        db_password <- Sys.getenv("PSQL_PASSWORD_OWENS")
+    }
+    if (db=="saltonsea"){
+        db_host <- Sys.getenv("PSQL_HOST_SS")
+        db_password <- Sys.getenv("PSQL_PASSWORD_SS")
+    }
     con <- RPostgreSQL::dbConnect("PostgreSQL", host=db_host, port=db_port,
                                   dbname=db, user=db_user, password=db_password)
     if (no_message){
