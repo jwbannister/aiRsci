@@ -33,6 +33,7 @@ wd_2_geomspoke <- function(deg){
         if (x>0 & x<180) return("q1")
         if (x>180 & x<360) return("q2")
     }
+    if (deg==360) deg <- 0
     cls <- angle_classify(deg)
     rad <- geomspoke_translate[[cls]](deg)
     rad

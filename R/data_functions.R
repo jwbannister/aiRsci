@@ -9,14 +9,12 @@
 #'@param query String. Query string to send to database.
 #'@param db_host, db_password, db_user, db_port String. PSQL connection 
 #'parameters. 
-query_db <- function(db, query, db_host=psql_host, db_password=psql_password, 
-                     db_user=psql_user, db_port=psql_port, no_message=F){
+query_db <- function(db, query, no_message=F){
     if (!(db %in% c("owenslake", "saltonsea"))){
         stop("Incorrect database name!")
     }
-    if (length(db_host)==0){
-        stop("Database connection parameters not defined.")
-    }
+    db_user <- Sys.getenv("PSQL_USER")
+    db_port <- Sys.getenv("PSQL_PORT")
     if (db=="owenslake"){
         db_host <- Sys.getenv("PSQL_HOST_OWENS")
         db_password <- Sys.getenv("PSQL_PASSWORD_OWENS")
