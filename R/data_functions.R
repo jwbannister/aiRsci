@@ -18,8 +18,7 @@ query_db <- function(db, query, db_host=psql_host, db_password=psql_password,
         stop("Database connection parameters not defined.")
     }
     con <- RPostgreSQL::dbConnect("PostgreSQL", host=db_host, port=db_port,
-                                  dbname="owenslake", user=db_user, 
-                                  password=db_password)
+                                  dbname=db, user=db_user, password=db_password)
     if (no_message){
     dat <- suppressMessages(RPostgreSQL::dbGetQuery(con, query))
     } else{
