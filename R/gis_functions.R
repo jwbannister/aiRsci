@@ -1,6 +1,7 @@
 #' Get Owens Lake areas polygons from database
 pull_owens_polygons <- function(){
-    query <- paste0("SELECT lba.area_name, dca.bacm_type, dca.phase, ",
+    query <- paste0("SELECT lba.lakebed_area_id AS objectid, lba.area_name, ", 
+                    "dca.bacm_type, dca.phase, ",
                     "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(lba.geom)).geom, 26911)) AS x, ",
                     "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(lba.geom)).geom, 26911)) AS y ",
                     "FROM info.lakebed_areas lba ",
@@ -8,13 +9,34 @@ pull_owens_polygons <- function(){
                     "ON lba.lakebed_area_id=dca.dust_control_area_id;")
     df1 <- query_db("owenslake", query)
 }
+pull_sfwcrft_polygons <- function(){
+    query <- paste0("SELECT sf.gid AS objectid, sf.dca, sf.treatment, sf.phase, ", 
+                    "ST_X((ST_DUMPPOINTS(sf.geom)).geom) AS x, ",
+                    "ST_Y((ST_DUMPPOINTS(sf.geom)).geom) AS y ",
+                    "FROM info.sfwcrft sf ")
+    df1 <- query_db("owenslake", query)
+}
 
 #' Get Owens Lake DCA labels from database
 pull_dca_labels <- function(){
-    query <- paste0("SELECT area_name AS label, ",
+    query <- paste0("SELECT area_name AS label, bacm_type, ",
                     "ST_X(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS x, ",
                     "ST_Y(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS y ",
                     "FROM info.lakebed_areas;")
+    df1 <- query_db("owenslake", query)
+}
+pull_onlake_labels <- function(){
+    query <- paste0("SELECT dca_name AS label, bacm_type, ",
+                    "ST_X(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS x, ",
+                    "ST_Y(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS y ",
+                    "FROM info.dust_control_areas;")
+    df1 <- query_db("owenslake", query)
+}
+pull_sfwcrft_labels <- function(){
+    query <- paste0("SELECT dca, treatment, phase, ",
+                    "ST_X(ST_CENTROID(geom::geometry)) AS x, ",
+                    "ST_Y(ST_CENTROID(geom::geometry)) AS y ",
+                    "FROM info.sfwcrft sf ")
     df1 <- query_db("owenslake", query)
 }
 

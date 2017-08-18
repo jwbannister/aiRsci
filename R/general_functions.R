@@ -5,3 +5,6 @@ degree_to_cardinal <- function(deg){
     cardinal_index[(val %% 16) + 1]
 }
 
+mround <- function(x, base){
+  base * round(x/base)
+}

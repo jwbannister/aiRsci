@@ -39,3 +39,47 @@ wd_2_geomspoke <- function(deg){
     rad
 }
 
+photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google"){
+    bounds_utm <- sp::SpatialPoints(cbind(c(xmin, xmax), c(ymin, ymax)), 
+                                proj4string=sp::CRS(paste0("+proj=utm +zone=", 
+                                                           zone)))
+    bounds_latlon <- sp::spTransform(bounds_utm, sp::CRS("+proj=longlat"))
+    p1 <- ggmap::get_map(location=bounds_latlon@bbox, 
+                 maptype=c("satellite"), source=src)
+    map_bbox <- attr(p1, 'bb') 
+    bounds_ras <- raster::extent(as.numeric(map_bbox[c(2, 4, 1, 3)]))
+    ras <- raster::raster(bounds_ras, nrow= nrow(p1), ncol = ncol(p1))
+    rgb_cols <- setNames(as.data.frame(t(col2rgb(p1))), c('red','green','blue'))
+    red <- ras
+    raster::values(red) <- rgb_cols[['red']]
+    green <- ras
+    raster::values(green) <- rgb_cols[['green']]
+    blue <- ras
+    raster::values(blue) <- rgb_cols[['blue']]
+    stack_latlon <- raster::stack(red,green,blue)
+    raster::crs(stack_latlon) <- "+proj=longlat"
+    stack_utm <- raster::projectRaster(stack_latlon, crs=paste0("+proj=utm +zone=", 
+                                                               zone))
+    df1 <- data.frame(raster::rasterToPoints(stack_utm))
+    for (i in 3:5){
+        df1[ , i][df1[ , i]>255] <- 255
+        df1[ , i][df1[ , i]<0] <- 0
+    }
+    p2 <- ggplot(data=df1) + coord_equal() + theme_bw() +
+        geom_tile(aes(x=x, y=y, fill=rgb(layer.1,layer.2,layer.3, 
+                                         maxColorValue = 255)), alpha=0.75) + 
+        scale_fill_identity() + 
+        scale_x_continuous(breaks=range(df1$x)*c(1.01, 0.99), 
+                           labels=range(df1$x), expand = c(0,0)) +
+        scale_y_continuous(breaks=range(df1$y)*c(0.99, 1.01), 
+                           labels=range(df1$y), expand = c(0,0)) +
+        theme(panel.grid=element_blank(), 
+              axis.title=element_blank(), 
+              axis.text=element_blank(), 
+              axis.ticks=element_blank(), 
+              plot.title=element_text(hjust=0.5), 
+              panel.background=element_rect(fill='darkgrey'))
+    p2
+}
+
+
