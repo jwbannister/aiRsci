@@ -1,12 +1,10 @@
 #' Get Owens Lake areas polygons from database
-pull_owens_polygons <- function(){
-    query <- paste0("SELECT lba.lakebed_area_id AS objectid, lba.area_name, ", 
+pull_onlake_polygons <- function(){
+    query <- paste0("SELECT dca.dust_control_area_id AS objectid, dca.dca_name, ", 
                     "dca.bacm_type, dca.phase, ",
-                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(lba.geom)).geom, 26911)) AS x, ",
-                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(lba.geom)).geom, 26911)) AS y ",
-                    "FROM info.lakebed_areas lba ",
-                    "LEFT JOIN info.dust_control_areas dca ",
-                    "ON lba.lakebed_area_id=dca.dust_control_area_id;")
+                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(dca.geom)).geom, 26911)) AS x, ",
+                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(dca.geom)).geom, 26911)) AS y ",
+                    "FROM info.dust_control_areas dca;")
     df1 <- query_db("owenslake", query)
 }
 pull_sfwcrft_polygons <- function(){
@@ -19,7 +17,7 @@ pull_sfwcrft_polygons <- function(){
 
 #' Get Owens Lake DCA labels from database
 pull_dca_labels <- function(){
-    query <- paste0("SELECT area_name AS label, bacm_type, ",
+    query <- paste0("SELECT area_name AS label, ",
                     "ST_X(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS x, ",
                     "ST_Y(ST_CENTROID(ST_TRANSFORM(geom::geometry, 26911))) AS y ",
                     "FROM info.lakebed_areas;")

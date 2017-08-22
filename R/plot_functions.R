@@ -39,11 +39,19 @@ wd_2_geomspoke <- function(deg){
     rad
 }
 
-photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google"){
-    bounds_utm <- sp::SpatialPoints(cbind(c(xmin, xmax), c(ymin, ymax)), 
-                                proj4string=sp::CRS(paste0("+proj=utm +zone=", 
-                                                           zone)))
-    bounds_latlon <- sp::spTransform(bounds_utm, sp::CRS("+proj=longlat"))
+photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google", 
+                             axes=F, utm_bounds=T){
+    if (utm_bounds){
+        bounds_utm <- 
+            sp::SpatialPoints(cbind(c(xmin, xmax), c(ymin, ymax)), 
+                              proj4string=sp::CRS(paste0("+proj=utm +zone=", 
+                                                         zone)))
+        bounds_latlon <- sp::spTransform(bounds_utm, sp::CRS("+proj=longlat"))
+    } else{
+        bounds_latlon <- 
+            sp::SpatialPoints(cbind(c(xmin, xmax), c(ymin, ymax)), 
+                              proj4string=sp::CRS(paste0("+proj=longlat")))
+    }
     p1 <- ggmap::get_map(location=bounds_latlon@bbox, 
                  maptype=c("satellite"), source=src)
     map_bbox <- attr(p1, 'bb') 
@@ -58,9 +66,14 @@ photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google"){
     raster::values(blue) <- rgb_cols[['blue']]
     stack_latlon <- raster::stack(red,green,blue)
     raster::crs(stack_latlon) <- "+proj=longlat"
-    stack_utm <- raster::projectRaster(stack_latlon, crs=paste0("+proj=utm +zone=", 
-                                                               zone))
-    df1 <- data.frame(raster::rasterToPoints(stack_utm))
+    if (utm_bounds){
+        stack_utm <- 
+            raster::projectRaster(stack_latlon, crs=paste0("+proj=utm +zone=", 
+                                                           zone))
+        df1 <- data.frame(raster::rasterToPoints(stack_utm))
+    } else{
+        df1 <- data.frame(raster::rasterToPoints(stack_latlon))
+    }
     for (i in 3:5){
         df1[ , i][df1[ , i]>255] <- 255
         df1[ , i][df1[ , i]<0] <- 0
@@ -74,11 +87,14 @@ photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google"){
         scale_y_continuous(breaks=range(df1$y)*c(0.99, 1.01), 
                            labels=range(df1$y), expand = c(0,0)) +
         theme(panel.grid=element_blank(), 
-              axis.title=element_blank(), 
-              axis.text=element_blank(), 
-              axis.ticks=element_blank(), 
               plot.title=element_text(hjust=0.5), 
               panel.background=element_rect(fill='darkgrey'))
+    if (!axes){
+    p2 <- p2 + 
+        theme(axis.title=element_blank(), 
+              axis.text=element_blank(), 
+              axis.ticks=element_blank()) 
+    }
     p2
 }
 
