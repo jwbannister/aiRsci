@@ -41,6 +41,11 @@ wd_2_geomspoke <- function(deg){
 
 photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google", 
                              axes=F, utm_bounds=T){
+    sq_extents <- square_extents(xmin, xmax, ymin, ymax)
+    xmin <- sq_extents[1]
+    xmax <- sq_extents[2]
+    ymin <- sq_extents[3]
+    ymax <- sq_extents[4]
     if (utm_bounds){
         bounds_utm <- 
             sp::SpatialPoints(cbind(c(xmin, xmax), c(ymin, ymax)), 
@@ -98,4 +103,12 @@ photo_background <- function(xmin, xmax, ymin, ymax, zone, src="google",
     p2
 }
 
+square_extents <- function(xmin, xmax, ymin, ymax){
+    side <- max(c(abs(xmax - xmin), abs(ymax - ymin)))
+    center_x <- mean(c(xmax, xmin))
+    center_y <- mean(c(ymax, ymin))
+    sq_extents <- c(xmin_sq=center_x-side/2, xmax_sq=center_x+side/2, 
+                    ymin_sq=center_y-side/2, ymax_sq=center_y+side/2)
+    sq_extents
+}
 
