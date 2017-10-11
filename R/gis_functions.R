@@ -135,13 +135,16 @@ lists2df <- function(df_in, list_ind, id_ind){
   df_out
 }
 
-point_in_dca <- function(vec_in, poly_df){
+point_in_dca <- function(vec_in, poly_df, return_dca=T){
     for (j in unique(poly_df$objectid)){
-      polycheck <- sp::point.in.polygon(vec_in[1], vec_in[2],
-                                    dplyr::filter(poly_df, objectid==j)$x, 
-                                    dplyr::filter(poly_df, objectid==j)$y)
-      if (polycheck==1) return(filter(poly_df, objectid==j)$dca_name[1])
+        polycheck <- sp::point.in.polygon(vec_in[1], vec_in[2],
+                                          dplyr::filter(poly_df, objectid==j)$x, 
+                                          dplyr::filter(poly_df, objectid==j)$y)
+        if (polycheck==1){
+            ifelse(return_dca, return(filter(poly_df, objectid==j)$dca_name[1]), 
+                   return(j))
+        } 
     }
-    return("Uncontrolled")
+    ifelse(return_dca, return("Uncontrolled"), return(NA))
 }
 
