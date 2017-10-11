@@ -14,6 +14,29 @@ pull_sfwcrft_polygons <- function(){
                     "FROM info.sfwcrft sf ")
     df1 <- query_db("owenslake", query)
 }
+pull_offlake_polygons <- function(){
+    query <- paste0("SELECT lb.lakebed_area_id AS objectid, lb.area_name, ", 
+                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(lb.geom)).geom, 26911)) ",
+                    "AS x, ",
+                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(lb.geom)).geom, 26911)) ",
+                    "AS y ",
+                    "FROM info.lakebed_areas lb ", 
+                    "LEFT JOIN info.dust_control_areas dcas ", 
+                    "ON lb.area_name=dcas.dca_name ",
+                    "WHERE dcas.dca_name IS NULL;")
+    df1 <- query_db("owenslake", query)
+    df2 <- df1 %>% filter(grepl("Off Lake", area_name) | 
+                          area_name=='Keeler Dunes') 
+}
+pull_all_polygons <- function(){
+    query <- paste0("SELECT lb.lakebed_area_id AS objectid, lb.area_name, ", 
+                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(lb.geom)).geom, 26911)) ",
+                    "AS x, ",
+                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(lb.geom)).geom, 26911)) ",
+                    "AS y ",
+                    "FROM info.lakebed_areas lb;") 
+    df1 <- query_db("owenslake", query)
+}
 
 #' Get Owens Lake DCA labels from database
 pull_dca_labels <- function(){
@@ -117,7 +140,8 @@ point_in_dca <- function(vec_in, poly_df){
       polycheck <- sp::point.in.polygon(vec_in[1], vec_in[2],
                                     dplyr::filter(poly_df, objectid==j)$x, 
                                     dplyr::filter(poly_df, objectid==j)$y)
-      if (polycheck==1) return(j) 
+      if (polycheck==1) return(filter(poly_df, objectid==j)$dca_name[1])
     }
+    return("Uncontrolled")
 }
 

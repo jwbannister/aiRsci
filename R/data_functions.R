@@ -74,8 +74,8 @@ upsert_2_db <- function(db, tbl, df1, cols2char, key_cols){
 
 S3_bucket_access <- function(hostname="s3-us-west-2.amazonaws.com", 
                              bucket, key, file){
-    aws_access <- Sys.getenv("AWSID_AIRSCI")
-    aws_secret <- Sys.getenv("AWSKEY_AIRSCI")
+    aws_access <- Sys.getenv("AWS_ACCESS_KEY")
+    aws_secret <- Sys.getenv("AWS_SECRET_KEY")
     RS3::S3_connect(aws_access, aws_secret, hostname)
     RS3::S3_get_object(bucket, key, file)
 }
