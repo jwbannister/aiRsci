@@ -145,6 +145,6 @@ point_in_dca <- function(vec_in, poly_df, return_dca=T){
                    return(j))
         } 
     }
-    ifelse(return_dca, return("Uncontrolled"), return(NA))
+    return(NA)
 }
 
