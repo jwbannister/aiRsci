@@ -23,14 +23,14 @@ query_db <- function(db, query, no_message=F){
         db_host <- Sys.getenv("PSQL_HOST_SS")
         db_password <- Sys.getenv("PSQL_PASSWORD_SS")
     }
-    con <- DBI::dbConnect("PostgreSQL", host=db_host, port=db_port,
+    con <- RPostgreSQL::dbConnect("PostgreSQL", host=db_host, port=db_port,
                                   dbname=db, user=db_user, password=db_password)
     if (no_message){
-    dat <- suppressWarnings(DBI::dbGetQuery(con, query))
+    dat <- suppressWarnings(RPostgreSQL::dbGetQuery(con, query))
     } else{
-    dat <- DBI::dbGetQuery(con, query)
+    dat <- RPostgreSQL::dbGetQuery(con, query)
     }
-    DBI::dbDisconnect(con)
+    RPostgreSQL::dbDisconnect(con)
     dat
 }
 
