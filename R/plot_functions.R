@@ -112,3 +112,13 @@ square_extents <- function(xmin, xmax, ymin, ymax){
     sq_extents
 }
 
+ggplot_2_grob <- function(obj, ht=10.5, wt=8){
+    fl <- tempfile()
+    png(fl)
+    print(obj)
+    dev.off()
+    tmp <- png::readPNG(fl)
+    obj_grob <- grid::rasterGrob(tmp, interpolate=T)
+}
+    
+

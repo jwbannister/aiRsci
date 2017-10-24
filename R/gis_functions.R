@@ -37,6 +37,17 @@ pull_all_polygons <- function(){
                     "FROM info.lakebed_areas lb;") 
     df1 <- query_db("owenslake", query)
 }
+pull_highways <- function(){
+    query <- paste0("SELECT name, ", 
+                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(geom)).geom, 26911)) ",
+                    "AS x, ",
+                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(geom)).geom, 26911)) ",
+                    "AS y ",
+                    "FROM info.highways;") 
+    df1 <- query_db("owenslake", query)
+    df2 <- rbind(arrange(filter(df1, name==395), y), 
+                 arrange(filter(df1, name!=395), x))
+}
 
 #' Get Owens Lake DCA labels from database
 pull_dca_labels <- function(){
@@ -59,6 +70,17 @@ pull_sfwcrft_labels <- function(){
                     "ST_Y(ST_CENTROID(geom::geometry)) AS y ",
                     "FROM info.sfwcrft sf ")
     df1 <- query_db("owenslake", query)
+}
+pull_highways_labels <- function(){
+    query <- paste0("SELECT name, ", 
+                    "ST_X(ST_CENTROID(geom::geometry)) AS x, ",
+                    "ST_Y(ST_CENTROID(geom::geometry)) AS y ", 
+                    "FROM info.highways;") 
+    df1 <- query_db("owenslake", query)
+    df1[df1$name==136, ]$x <- df1[df1$name==136, ]$x + 3000
+    df1[df1$name==136, ]$y <- df1[df1$name==136, ]$y + 2000
+    df1[df1$name==395, ]$x <- df1[df1$name==395, ]$x - 2000
+    df1
 }
 
 #' Get Owens Lake shoreline polygon from database
