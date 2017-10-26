@@ -48,6 +48,15 @@ pull_highways <- function(){
     df2 <- rbind(arrange(filter(df1, name==395), y), 
                  arrange(filter(df1, name!=395), x))
 }
+pull_2kmbuffer <- function(){
+    query <- paste0("SELECT id, ", 
+                    "ST_X(ST_TRANSFORM((ST_DUMPPOINTS(geom)).geom, 26911)) ",
+                    "AS x, ",
+                    "ST_Y(ST_TRANSFORM((ST_DUMPPOINTS(geom)).geom, 26911)) ",
+                    "AS y ",
+                    "FROM info.buffer;") 
+    df1 <- query_db("owenslake", query)
+}
 
 #' Get Owens Lake DCA labels from database
 pull_dca_labels <- function(){
